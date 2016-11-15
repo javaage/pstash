@@ -24,9 +24,12 @@ require 'common.php';
 //exit(0);
 
 $sql = "select preflist from candidate order by id desc limit 1";
-echo $sql;
+
 $result = $mysql -> query($sql);
+
+echo "enter";
 if ($row = $result -> fetch()) {
+	echo $row;
 	$candidates = preg_replace('/\s/', '', $row[0]);
 	$candidates = strtolower($candidates);
 	$listCode = explode(',', $candidates);
