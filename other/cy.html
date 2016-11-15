@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+    <meta charste="GB2312">
+    <head>
+        <title>popular</title>
+        <link rel="stylesheet" type="text/css" href="../css/jquery.jqChart.css" />
+        <link rel="stylesheet" type="text/css" href="../css/jquery.jqRangeSlider.css" />
+        <link rel="stylesheet" type="text/css" href="../themes/smoothness/jquery-ui-1.10.4.css" />
+        <link rel="stylesheet" type="text/css" href="../css/jquery.nstSlider.min.css" />
+        <script src="../js/jquery-1.11.1.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.mousewheel.js" type="text/javascript"></script>
+        <script src="../js/jquery.jqChart.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.jqRangeSlider.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.nstSlider.min.js" type="text/javascript"></script>
+        <!--[if IE]><script lang="javascript" type="text/javascript" src="../js/excanvas.js"></script><![endif]-->
+
+        <script lang="javascript" type="text/javascript">
+            var n = 1, t = 0;
+            var oldData = [];
+            var background = {
+                type : 'linearGradient',
+                x0 : 0,
+                y0 : 0,
+                x1 : 0,
+                y1 : 1,
+                colorStops : [{
+                    offset : 0,
+                    color : '#d2e6c9'
+                }, {
+                    offset : 1,
+                    color : 'white'
+                }]
+            };
+
+            var data1 = [];
+            var data2 = [];
+            var data3 = [];
+            var data4 = [];
+            var data5 = [];
+            var data6 = [];
+            var data7 = [];
+            var gt = [];
+            var lt = [];
+            var yValue1 = 50;
+            var yValue2 = 200;
+            var delta = 0; 
+            var isPlay = false;
+            var sellNotification = false;
+
+            var Request = {
+                QueryString : function(item){
+                    var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
+                    return svalue ? svalue[1] : svalue;
+                }
+            };
+            if(Request.QueryString("n") > 0){
+                n = Request.QueryString("n");
+            }else{
+                n = 1;
+            }
+            if(Request.QueryString("t") > 0){
+                t = Request.QueryString("t");
+            }else{
+                t = 0;
+            }
+
+            function getCounter() {
+                $.ajax({
+                    url : "cy.php",
+                    data : {
+                        "n" : n,
+                        "t" : t
+                    },
+                    context : document.body,
+                    success : function(data) {
+                        data = eval('(' + data + ')');
+                        data = data.concat(oldData);
+                        oldData = data;
+                        
+                            data1 = [];
+                            data2 = [];
+                            data3 = []; 
+                            data4 = [];
+                            data5 = [];
+                            data6 = [];
+                            data7 = [];
+                            
+                            var mid = Math.floor(n/2);
+                            delta = data[mid].dex - data[mid].strong; 
+                            
+                            var min = 100000;
+                            for (var i = 0; i < data.length; i++) {
+                                data2.push([data.length - i, parseFloat(data[i].strong)+delta]);
+                                data1.push([data.length - i, parseFloat(data[i].dex)]);
+                                if(parseFloat(data[i].dex) < min)
+                                	min = parseFloat(data[i].dex);
+                                if(data[i].t > t)
+                                    t = data[i].t;
+                            }
+                            for (var i = 0; i < data.length; i++) {
+                                data7.push([data.length - i, min - 10 + parseFloat(data[i].clmn)/100000 ]);
+                            }
+                            
+                            for (var i = 1; i < data.length; i++) {
+                                if(i > 1 && data1[i][1] < data1[i-1][1]){
+                                	if(data2[i][1] > data2[i-1][1]){
+                                		var last = gt[gt.length-1];
+                                		var append = 0;
+                                		if(typeof(last)=="object" && last[0] == i - 1){
+                                			append = last[1];
+                                		}
+                                		gt.push([i,data2[i][1] - data2[i-1][1] + append]);
+                                		if(gt[gt.length-1][1]>3){
+	                                		data3.push([data.length - i,data1[i][1]]);
+	                                	}else if(gt[gt.length-1][1]>2){
+	                                		data5.push([data.length - i,data1[i][1]]);
+	                                	}
+                                	}                        		
+                                }
+                                
+                                if(i > 1 && data1[i][1] > data1[i-1][1]){
+                                	if(data2[i][1] < data2[i-1][1]){
+                                		var last = lt[lt.length-1];
+                                		var append = 0;
+                                		if(typeof(last)=="object" && last[0] == i - 1){
+                                			append = last[1];
+                                		}
+                                		lt.push([i,data2[i][1] - data2[i-1][1] + append]);
+                                		if(lt[lt.length-1][1]<-3){
+	                                    	data4.push([data.length - i,data1[i][1]]);
+	                                    }else if(lt[lt.length-1][1]<-2){
+	                                    	data6.push([data.length - i,data1[i][1]]);
+	                                    }
+                                	}
+                                }
+                            }
+							
+							if(typeof(data3[data3.length-1])=="object" && data3[data3.length-1][0]==data.length-1 && !isPlay){ //buy
+								isPlay = true;
+                                player = document.getElementById('buymp3');
+                                player.play();
+							}else if(typeof(data4[data4.length-1])=="object" && data4[data4.length-1][0]==data.length-1 && !isPlay){ //sell
+								isPlay = true;
+                                player = document.getElementById('sellmp3');
+                                player.play();
+							}else if(typeof(data5[data5.length-1])=="object" && data5[data5.length-1][0]==data.length-1 && !isPlay){ //pre buy
+								isPlay = true;
+                                player = document.getElementById('pbuymp3');
+                                player.play();
+							}else if(typeof(data6[data6.length-1])=="object" && data6[data6.length-1][0]==data.length-1 && !isPlay){ //pre sell
+								isPlay = true;
+                                player = document.getElementById('psellmp3');
+                                player.play();
+							}else{
+								isPlay = false;
+							}
+							
+                            $('#jqChart').jqChart({
+                                title : {
+                                    text : 'Popular Index',
+                                    font : '18px sans-serif'
+                                },
+                                axes : [{
+                                    type : 'linear',
+                                    location : 'bottom',
+                                    zoomEnabled : true
+                                }],
+                                border : {
+                                    strokeStyle : '#6ba851'
+                                },
+                                background : background,
+                                tooltips : {
+                                    type : 'shared'
+                                },
+                                crosshairs : {
+                                    enabled : true,
+                                    hLine : false,
+                                    vLine : {
+                                        strokeStyle : '#cc0a0c'
+                                    }
+                                },
+                                series : [{
+                                    title : 'Index',
+                                    type : 'line',
+                                    data : data1,
+                                    markers : null
+                                }, {
+                                    title : 'Popular',
+                                    type : 'line',
+                                    data : data2,
+                                    markers : null
+                                }, {
+                                    title : 'Buy point',
+                                    type : 'scatter',
+                                    data : data3,
+                                    markers: { type: 'circle', size: 12 }
+                                }, {
+                                    title : 'Sell point',
+                                    type : 'scatter',
+                                    data : data4,
+                                    markers: { type: 'circle', size: 12 }
+                                }, {
+                                    title : 'Pre Buy point',
+                                    type : 'scatter',
+                                    data : data5,
+                                    markers: { type: 'circle', size: 8 }
+                                }, {
+                                    title : 'Pre Sell point',
+                                    type : 'scatter',
+                                    data : data6,
+                                    markers: { type: 'circle', size: 8 }
+                                }, {
+                                    title : 'Column',
+                                    type : 'column',
+                                    data : data7,
+                                    markers : null
+                                }]
+                            });
+                            // silder();
+                            setTimeout(getCounter,1000);
+                        
+                    },
+                    error : function(err) {
+                        oldData = [];
+                        t = 0;
+                        setTimeout(getCounter,1000);
+                        console.log(err);
+                    }
+                });
+            }
+
+            function silder() {
+                // Call methods and such...
+                var highlightMin = n-10, highlightMax = n+10;
+                $('.nstSlider').nstSlider('highlight_range', highlightMin, highlightMax);
+            }
+
+            function refresh() {
+                getCounter();
+                my();
+            }
+			
+			function my() {
+                $.ajax({
+                    url : "my.php",
+                    context : document.body,
+                    success : function(data) {
+                        if(data != ""){
+                        	if(!sellNotification){
+                        		sellNotification = true;
+                        		player = document.getElementById('sellmp3');
+                                player.play();
+                                alert(data);
+                        	}
+                        }else{
+                        	sellNotification = false;
+                        }
+                        setTimeout(my,1000);
+                    },
+                    error : function(err) {
+                        setTimeout(my,1000);
+                        console.log(err);
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                refresh();
+            });
+        </script>
+
+    </head>
+    <body>
+        <div>
+        	<audio id="pbuymp3" src="../wave/pbuy.mp3"></audio>
+            <audio id="buymp3" src="../wave/buy.mp3"></audio>
+            <audio id="psellmp3" src="../wave/psell.mp3"></audio>
+            <audio id="sellmp3" src="../wave/sell.mp3"></audio>
+            <div id="jqChart" style="width: 1000px; height: 720px;"></div>
+        </div>
+    </body>
+</html>

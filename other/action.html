@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+        <title>action</title>
+
+        <!-- Bootstrap -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <audio id="pbuymp3" src="wave/pbuy.mp3"></audio>
+        <audio id="buymp3" src="wave/buy.mp3"></audio>
+        <audio id="psellmp3" src="wave/psell.mp3"></audio>
+        <audio id="sellmp3" src="wave/sell.mp3"></audio>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-2">
+                    <span>推荐买入价格: </span><span id="spanBuy"></span>
+                </div>
+                <div class="col-md-2">
+                    <span>推荐卖出价格: </span><span id="spanSell"></span>
+                </div>
+                <div class="col-md-2">
+                    <span>当前价格: </span><span id="spanCurrent"></span>
+                </div>
+                <div class="col-md-2">
+                    <span>当日最高价格: </span><span id="spanHigh"></span>
+                </div>
+                <div class="col-md-2">
+                    <span>当日最低价格: </span><span id="spanLow"></span>
+                </div>
+                <div class="col-md-2">
+
+                </div>
+            </div>
+        </div>
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="../js/jquery-1.10.2.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            var isPlay = false;
+            var player = null;
+            function getAction() {
+                var post = {
+                    "code" : "sh603600"
+                };
+                $.ajax({
+                    type : "POST",
+                    url : "prefprice.php",
+                    data : post,
+                    success : function(data) {
+                        data = eval('(' + data + ')');
+                        $("#spanBuy").text(data.prefBuy);
+                        $("#spanSell").text(data.prefSell);
+                        $("#spanCurrent").text(data.current);
+                        $("#spanHigh").text(data.high);
+                        $("#spanLow").text(data.low);
+                    }
+                });
+            }
+
+            function getTrend() {
+                ////preSell,sell,preBuy,buy
+                $.ajax({
+                    url : "getaction.php",
+                    success : function(data) {
+                        switch(data) {
+                        case '0':
+                            if(!isPlay){
+                                isPlay = true;
+                                player = document.getElementById('psellmp3');
+                                player.play();
+                            }
+                            break;
+                        case '1':
+                            if(!isPlay){
+                                isPlay = true;
+                                player = document.getElementById('sellmp3');
+                                player.play();
+                            }
+                            
+                            break;
+                        case '2':
+                            if(!isPlay){
+                                isPlay = true;
+                                player = document.getElementById('pbuymp3');
+                                player.play();
+                            }
+                            
+                            break;
+                        case '3':
+                            if(!isPlay){
+                                isPlay = true;
+                                player = document.getElementById('buymp3');
+                                player.play();
+                            }
+                            break;
+                        default:
+                            isPlay = false;
+                            break;
+                        }
+                    }
+                });
+            }
+            $(document).ready(function() {
+                getAction();
+                setInterval("getTrend()",3000);
+                $(document).click(function(){
+                    if(player){
+                        player.pause();
+                    }
+                });
+            });
+            
+        </script>
+    </body>
+</html>

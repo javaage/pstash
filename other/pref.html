@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>超跌</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <style>
+        </style>
+        <!--[if lt IE 9]>
+        <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <div class="container">
+            <audio id="pbuymp3" src="../wave/pbuy.mp3"></audio>
+            <audio id="buymp3" src="../wave/buy.mp3"></audio>
+            <audio id="psellmp3" src="../wave/psell.mp3"></audio>
+            <audio id="sellmp3" src="../wave/sell.mp3"></audio>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-2">
+                        <span>推荐买入价格: </span><span id="spanBuy"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <span>推荐卖出价格: </span><span id="spanSell"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <span>当前价格: </span><span id="spanCurrent"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <span>当日最高价格: </span><span id="spanHigh"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <span>当日最低价格: </span><span id="spanLow"></span>
+                    </div>
+                    <div class="col-md-2">
+
+                    </div>
+                </div>
+            </div>
+            <hr/>
+            <div style="float:left;width:100%">
+                <div id="jsontotable-rate" class="jsontotable">
+                    &nbsp;
+                </div>
+            </div>
+            <button id="btnDetails" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" style="display:none">
+                Detail
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">Detail</h4>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table">
+                                <tr>
+                                    <td>推荐买入价格</td>
+                                    <td id="prefBuy"></td>
+                                </tr>
+                                <tr>
+                                    <td>推荐卖出价格</td>
+                                    <td id="prefSell"></td>
+                                </tr>
+                                <tr>
+                                    <td>当前价格</td>
+                                    <td id="current"></td>
+                                </tr>
+                                <tr>
+                                    <td>当日最高价格</td>
+                                    <td id="high"></td>
+                                </tr>
+                                <tr>
+                                    <td>当日最低价格</td>
+                                    <td id="low"></td>
+                                </tr>
+                            </table>
+                            <div>
+                                <!-- Nav tabs -->
+                                <ul id="myTabs" class="nav nav-tabs" role="tablist">
+                                    <li role="presentation" class="active">
+                                        <a href="#minite" aria-controls="home" role="tab" data-toggle="tab">分时图</a>
+                                    </li>
+                                    <li role="presentation">
+                                        <a href="#daily" aria-controls="profile" role="tab" data-toggle="tab">日线图</a>
+                                    </li>
+                                </ul>
+
+                                <!-- Tab panes -->
+                                <div class="tab-content">
+                                    <div role="tabpanel" class="tab-pane active" id="minite">
+                                        <div id="divMinite" class="item active">
+                                            <img id="imgMinite">
+                                        </div>
+                                    </div>
+                                    <div role="tabpanel" class="tab-pane" id="daily">
+                                        <div id="divDaily" class="item">
+                                            <img id="imgDaily">
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                                <!-- Indicators -->
+                                <ol class="carousel-indicators">
+                                    <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                                    <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+                                    <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+                                </ol>
+
+                                <!-- Wrapper for slides -->
+                                <div class="carousel-inner" role="listbox">
+
+                                </div>
+
+                                <!-- Controls -->
+                                <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev"> <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> <span class="sr-only">Previous</span> </a>
+                                <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next"> <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> <span class="sr-only">Next</span> </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <script src="../js/jquery-1.10.2.min.js"></script>
+            <script src="../js/bootstrap.min.js"></script>
+            <script src="../js/jquery.jsontotable.min.js"></script>
+            <script type="text/javascript">
+                var dailyUrlTmp = "http://image.sinajs.cn/newchart/daily/n/sh600000.gif";
+                var miniteUrlTmp = "http://image.sinajs.cn/newchart/min/n/sh600000.gif";
+                var maxImgWidth = document.body.clientWidth * 0.9;
+                function getCounter() {
+                    $.ajax({
+                        url : "../pref.php",
+                        context : document.body,
+                        success : function(data) {
+                            $("#jsontotable-rate").empty();
+                            $.jsontotable(data, {
+                                id : "#jsontotable-rate",
+                                className : "table table-hover",
+                                header : false
+                            });
+                            addDetail();
+                            addHeader();
+
+                        }
+                    });
+                }
+
+                function addHeader() {
+                    var th = $("<thead><tr><th>代码</th><th>名称</th><th>卖出信号</th><th>买入信号</th><th>买入价格</th><th>卖出价格</th><th>当前价格</th><th>当日最高</th><th>当日最低</th><th>涉及概念</th><th></th></tr></thead>");
+                    $("#jsontotable-rate table").prepend(th);
+                }
+
+                function addDetail() {
+                    $("#jsontotable-rate table.table tr").each(function() {
+                        var code = $(this).find("td:first").text().toLowerCase();
+                        var td = $("<td></td>");
+                        $(this).append(td);
+                        btnDetails = $("#btnDetails").clone();
+                        btnDetails.attr("onclick", "getDetail('" + code + "')");
+                        td.append(btnDetails);
+                        btnDetails.show();
+                    });
+                }
+
+                function getDetail(code) {
+                    $("#prefBuy").text("");
+                    $("#prefSell").text("");
+                    $("#current").text("");
+                    $("#high").text("");
+                    $("#low").text("");
+                    $("#divMinite").empty();
+                    $("#divDaily").empty();
+                    var post = {
+                        "code" : code
+                    };
+                    $.ajax({
+                        type : "POST",
+                        url : "../prefprice.php",
+                        data : post,
+                        success : function(data) {
+                            data = eval('(' + data + ')');
+                            $("#prefBuy").text(data.prefBuy);
+                            $("#prefSell").text(data.prefSell);
+                            $("#current").text(data.current);
+                            $("#high").text(data.high);
+                            $("#low").text(data.low);
+                            dailyUrl = dailyUrlTmp.replace("sh600000", code) + "?t=" + Math.random();
+                            miniteUrl = miniteUrlTmp.replace("sh600000", code) + "?t=" + Math.random();
+
+                            var imgMinite = new Image();
+                            imgMinite.onload = function() {
+                                if (imgMinite.width > maxImgWidth) {
+                                    imgMinite.width = maxImgWidth;
+                                    imgMinite.height = imgMinite.height * maxImgWidth / imgMinite.width;
+                                }
+                                $("#divMinite").append(imgMinite);
+                            };
+                            imgMinite.src = miniteUrl;
+
+                            var imgDaily = new Image();
+                            imgDaily.onload = function() {
+                                if (imgDaily.width > maxImgWidth) {
+                                    imgDaily.width = maxImgWidth;
+                                    imgDaily.height = imgDaily.height * maxImgWidth / imgDaily.width;
+                                }
+                                $("#divDaily").append(imgDaily);
+                            };
+                            imgDaily.src = dailyUrl;
+                        }
+                    });
+                }
+
+                function addGif() {
+                    $("table.table tr").each(function() {
+                        var td = $("<td></td>");
+                        $(this).append(td);
+                        var url = gifUrl.replace("sh600000", $(this).find("td:first").text().toLowerCase());
+                        var img = new Image();
+                        img.onload = function() {
+                            td.append(img);
+                        };
+                        img.src = url;
+                    });
+                }
+
+                var isPlay = false;
+                var player = null;
+                function getAction() {
+                    var post = {
+                        "code" : "sz002475"
+                    };
+                    $.ajax({
+                        type : "POST",
+                        url : "../prefprice.php",
+                        data : post,
+                        success : function(data) {
+                            data = eval('(' + data + ')');
+                            $("#spanBuy").text(data.prefBuy);
+                            $("#spanSell").text(data.prefSell);
+                            $("#spanCurrent").text(data.current);
+                            $("#spanHigh").text(data.high);
+                            $("#spanLow").text(data.low);
+                        }
+                    });
+                }
+
+                function getTrend() {
+                    ////preSell,sell,preBuy,buy
+                    $.ajax({
+                        url : "../getaction.php",
+                        success : function(data) {
+                            data = eval('(' + data + ')');
+                            switch(data.action) {
+                            case '0':
+                                document.title += "psell";
+                                if (!isPlay) {
+                                    isPlay = true;
+                                    player = document.getElementById('psellmp3');
+                                    player.play();
+                                }
+                                break;
+                            case '1':
+                                document.title += "sell";
+                                if (!isPlay) {
+                                    isPlay = true;
+                                    player = document.getElementById('sellmp3');
+                                    player.play();
+                                }
+
+                                break;
+                            case '2':
+                                document.title += "pbuy";
+                                if (!isPlay) {
+                                    isPlay = true;
+                                    player = document.getElementById('pbuymp3');
+                                    player.play();
+                                }
+
+                                break;
+                            case '3':
+                                document.title += "buy";
+                                if (!isPlay) {
+                                    isPlay = true;
+                                    player = document.getElementById('buymp3');
+                                    player.play();
+                                }
+                                break;
+                            default:
+                                document.title = "推荐列表";
+                                isPlay = false;
+                                break;
+                            }
+                        }
+                    });
+                }
+
+                function refresh(){
+                    getTrend();
+                    getCounter();
+                }
+                
+                $(document).ready(function() {
+                    getAction();
+                    setInterval("refresh()", 3000);
+                    $(document).click(function() {
+                        if (player) {
+                            player.pause();
+                        }
+                    });
+
+                    getCounter();
+
+                    $('#myTabs a').click(function(e) {
+                        e.preventDefault();
+                        $(this).tab('show');
+                    });
+                });
+            </script>
+    </body>
+</html>
