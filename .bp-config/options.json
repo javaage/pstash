@@ -1,4 +1,5 @@
 {
     "ADMIN_EMAIL": "dan@mikusa.com",
-    "PHP_EXTENSIONS": ["mbstring", "pdo", "pgsql", "mcrypt", "gd", "zip", "redis", "pdo_pgsql"]
+    "PHP_EXTENSIONS": ["mbstring", "pdo", "pgsql", "mcrypt", "gd", "zip", "redis", "pdo_pgsql"],
+    "ZEND_EXTENSIONS": ["crontab","cron"]
 }

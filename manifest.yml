@@ -1,8 +1,8 @@
 ---
 applications:
 - name: stash
-  memory: 1024M
-  instances: 1
+  memory: 2048M
+  instances: 20
   path: .
   services:
   - pstash-postgre

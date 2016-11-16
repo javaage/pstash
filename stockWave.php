@@ -27,9 +27,7 @@ $sql = "select preflist from candidate order by id desc limit 1";
 
 $result = $mysql -> query($sql);
 
-echo "enter";
 if ($row = $result -> fetch()) {
-	echo $row;
 	$candidates = preg_replace('/\s/', '', $row[0]);
 	$candidates = strtolower($candidates);
 	$listCode = explode(',', $candidates);
@@ -41,7 +39,7 @@ if ($row = $result -> fetch()) {
 		$code = strtolower($listCode[$k]);
 		recordWave($code);
 	}
-	exit(0);
+
 	$code = strtolower($listCode[$rc]);
 	
 	while(!recordWave($code)){
@@ -82,10 +80,9 @@ function recordWave($code){
 	$baseUrl = "http://hq.sinajs.cn/list=";
 	
 	$sql = "SELECT code FROM waverecord WHERE code = '$code'";
-	echo $sql;
+	
 	$result = $mysql -> query($sql);
 	if($row = $result -> fetch()){
-		echo "false";
 		return false;
 	}else{
 		echo $code;
@@ -94,8 +91,9 @@ function recordWave($code){
 	$csv = array();
 	
 	$url = $baseUrl . $code;
+	
 	$html = file_get_contents($url);
-
+	
 	$stock = str_replace("\"", "", $html);
 	$items = explode(',', $stock);
 	
@@ -104,12 +102,14 @@ function recordWave($code){
 	
 	$burl = str_replace($ycode, substr($code, 2) . "." . substr($code, 0, 2), $burl);
 	$burl = str_replace('sh', 'ss', $burl);
-
+	
 	$file = fopen($burl, 'r');
 	while ($data = fgetcsv($file)) {
 		if (is_numeric($data[6]))
 			$csv[] = array($data[0], $data[6]);
 	}
+	//print_r($csv);
+	
 	
 	for ($i = count($csv) - 1; $i > 0; $i--) {
 		$f = $csv[$i];
@@ -130,10 +130,11 @@ function recordWave($code){
 		$w -> low = min($f[1], $l[1]);
 		$w -> beginTime = strtotime($f[0] . "15:00:00");
 		$w -> endTime = strtotime($l[0] . "15:00:00");
-
+		
 		saveWave($gw, $w);
 
 	}
+
 	
 	$nw = $gw;
 	while(count($nw->childWave)>0){
@@ -149,11 +150,14 @@ function recordWave($code){
 		$nw = $child;
 	}
 	
+	print_r($gw);
+	
 	if(empty($gw)){
 		return false;
 	}else{
 		$strQuery = "INSERT INTO waverecord (code,dt,wv,gw) VALUES('$code','" . $ct . "','','" . json_encode($gw) . "')";
-		$mysql -> query($strQuery);
+		$count = $mysql -> exec($strQuery);
+		echo $count;
 		return true;
 	}
 }

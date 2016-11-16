@@ -2,6 +2,9 @@ name: ichess
 version: 1
 accesskey: m4mly33kmy
 cron:
+- description: test
+  url: index.php
+  schedule: * * * * 1-5
 - description: auto clear
   url: autoclear.php
   schedule: 3 15 * * 1-5
